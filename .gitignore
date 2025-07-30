@@ -1,0 +1,16 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+pokedex-cli
+
+# Output of `go build`
+*.out
+
+# Test binary
+*.test
+
+# Logs or debugging artifacts
+*.log
