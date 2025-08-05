@@ -39,7 +39,3 @@ func TestCleanInput(t *testing.T) {
 	}
 
 }
-
-func TestCleanInputEmpty(t *testing.T) {
-	
-}
