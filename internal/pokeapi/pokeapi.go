@@ -3,7 +3,10 @@ package pokeapi
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+
+	"github.com/fotis-sofoulis/pokedex-cli/internal/pokecache"
 )
 
 type LocationArea struct {
@@ -19,9 +22,23 @@ type LocationAreaResp struct {
 	Results  []LocationArea  `json:"results"`
 }
 
+var cache *pokecache.Cache
+
+func InitCache(c *pokecache.Cache) {
+	cache = c
+}
+
 func FetchLocationAreas(url string) (LocationAreaResp, error) {
 	if url == "" {
 		url = "https://pokeapi.co/api/v2/location-area/"
+	}
+
+	// fetch from cache
+	if data, exist := cache.Get(url); exist {
+		var res LocationAreaResp
+		if err := json.Unmarshal(data, &res); err == nil {
+			return res, nil
+		}
 	}
 
 	res, err := http.Get(url)
@@ -30,8 +47,15 @@ func FetchLocationAreas(url string) (LocationAreaResp, error) {
 	}
 	defer res.Body.Close()
 
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return LocationAreaResp{}, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	cache.Add(url, body)
+
 	var data LocationAreaResp
-	if err := json.NewDecoder(res.Body).Decode(&data); err != nil {
+	if err := json.Unmarshal(body, &data); err != nil {
 		return LocationAreaResp{}, fmt.Errorf("failed to parse JSON: %w", err)
 	}
 
