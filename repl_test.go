@@ -26,6 +26,7 @@ func TestCleanInput(t *testing.T) {
 		actual := cleanInput(c.input)
 		if len(actual) != len(c.expected) {
 			t.Errorf("len of actual not the same as expected. Actual: %d - vs - Expected: %d", len(actual), len(c.expected))
+			continue
 		}
 		
 		for i := range actual {
