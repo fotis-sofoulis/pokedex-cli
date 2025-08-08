@@ -2,29 +2,40 @@ package main
 
 import (
 	"fmt"
+	"bufio"
 	"os"
 	"strings"
+	"github.com/fotis-sofoulis/pokedex-cli/commands"
 )
 
-type cliCommand struct {
-	name		string
-	description string
-	callback	func() error
-}
+func startRepl() {
+	scanner := bufio.NewScanner(os.Stdin)
+	for {
+		fmt.Print("Pokedex > ")
+		scanner.Scan()
+		input := scanner.Text()
+		cleaned := cleanInput(input)
 
-func getCommands() map[string]cliCommand {
-	return map[string]cliCommand {
-		"exit": {
-			name: "exit",
-			description: "Exit the Pokedex",
-			callback: commandExit,
-		},
-		"help": {
-			name: "help",
-			description: "Displays a help message",
-			callback: commandHelp,
-		},
+		if len(cleaned) == 0 {
+			continue
+		}
+
+		cmdName := cleaned[0]
+
+		cmd, exists := commands.GetCommands()[cmdName]
+		if exists {
+			err := cmd.Callback()
+			if err != nil {
+				fmt.Println(err)
+			}
+			continue
+		} else {
+			fmt.Println("Unkown command")
+			continue
+		}
+
 	}
+
 }
 
 func cleanInput(text string) []string {
@@ -32,17 +43,3 @@ func cleanInput(text string) []string {
 	return words
 }
 
-func commandExit() error {
-	fmt.Println("Closing the Pokedex... Goodbye!")
-	os.Exit(0)
-	return nil
-}
-
-func commandHelp() error {
-	fmt.Print("Welcome to the Pokedex!\nUsage:\n\n")
-
-	for _, command := range getCommands() {
-		fmt.Printf("%s: %s\n", command.name, command.description)
-	}
-	return nil
-}
