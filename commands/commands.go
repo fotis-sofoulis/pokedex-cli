@@ -31,9 +31,15 @@ func GetCommands() map[string]cliCommand {
 		},
 		"map": {
 			Name: "map",
-			Description: "Displays 20 location areas in the Pokemon world",
+			Description: "Displays the next 20 location areas in the Pokemon world",
 			Callback: commandMap,
 		},
+		"mapb": {
+			Name: "mapb",
+			Description: "Displays the previous 20 location areas in the Pokemon world",
+			Callback: commandMapb,
+		},
+
 	}
 }
 
@@ -71,4 +77,25 @@ func commandMap(cfg *Config) error {
 	cfg.Previous = data.Previous
 
 	return nil
+}
+
+func commandMapb(cfg * Config) error {
+	if cfg.Previous == nil {
+		fmt.Println("You're on the first page")
+		return nil
+	}
+
+	data, err := pokeapi.FetchLocationAreas(*cfg.Previous)
+    if err != nil {
+        return err
+    }
+
+    for _, loc := range data.Results {
+        fmt.Println(loc.Name)
+    }
+
+    cfg.Next = data.Next
+    cfg.Previous = data.Previous
+
+    return nil
 }
