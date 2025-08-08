@@ -7,18 +7,18 @@ import (
 
 type cacheEntry struct {
 	createdAt time.Time
-	val 	  []byte
+	val       []byte
 }
 
 type Cache struct {
-	mu 		 sync.Mutex
-	items 	 map[string]cacheEntry
+	mu       sync.Mutex
+	items    map[string]cacheEntry
 	interval time.Duration
 }
 
 func NewCache(interval time.Duration) *Cache {
 	c := &Cache{
-		items: make(map[string]cacheEntry),
+		items:    make(map[string]cacheEntry),
 		interval: interval,
 	}
 
@@ -34,7 +34,7 @@ func (c *Cache) Add(key string, val []byte) {
 
 	c.items[key] = cacheEntry{
 		createdAt: time.Now(),
-		val: val,
+		val:       val,
 	}
 }
 
@@ -52,7 +52,7 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 func (c *Cache) reapLoop() {
 	ticker := time.NewTicker(c.interval)
 	defer ticker.Stop()
-	
+
 	for {
 		<-ticker.C
 

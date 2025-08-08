@@ -4,19 +4,19 @@ import "testing"
 
 func TestCleanInput(t *testing.T) {
 	cases := []struct {
-		input string
+		input    string
 		expected []string
 	}{
 		{
-			input: "classic test 1",
+			input:    "classic test 1",
 			expected: []string{"classic", "test", "1"},
 		},
 		{
-			input: "   spaces before",
+			input:    "   spaces before",
 			expected: []string{"spaces", "before"},
 		},
 		{
-			input: "spaces after         ",
+			input:    "spaces after         ",
 			expected: []string{"spaces", "after"},
 		},
 	}
@@ -28,7 +28,7 @@ func TestCleanInput(t *testing.T) {
 			t.Errorf("len of actual not the same as expected. Actual: %d - vs - Expected: %d", len(actual), len(c.expected))
 			continue
 		}
-		
+
 		for i := range actual {
 			word := actual[i]
 			expectedWord := c.expected[i]

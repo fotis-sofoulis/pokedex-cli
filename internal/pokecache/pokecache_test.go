@@ -1,9 +1,9 @@
 package pokecache
 
 import (
+	"fmt"
 	"testing"
 	"time"
-	"fmt"
 )
 
 func TestAddGet(t *testing.T) {

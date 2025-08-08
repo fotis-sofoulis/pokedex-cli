@@ -12,14 +12,25 @@ import (
 type LocationArea struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`
-
 }
 
 type LocationAreaResp struct {
-	Count    int      		 `json:"count"`
-	Next     *string  		 `json:"next"`
-	Previous *string  		 `json:"previous"`
-	Results  []LocationArea  `json:"results"`
+	Count    int            `json:"count"`
+	Next     *string        `json:"next"`
+	Previous *string        `json:"previous"`
+	Results  []LocationArea `json:"results"`
+}
+
+type LocationAreaDetailsResp struct {
+	PokemonEncounters []PokemonEncounter `json:"pokemon_encounters"`
+}
+
+type PokemonEncounter struct {
+	Pokemon Pokemon `json:"pokemon"`
+}
+
+type Pokemon struct {
+	Name string `json:"name"`
 }
 
 var cache *pokecache.Cache
@@ -60,4 +71,39 @@ func FetchLocationAreas(url string) (LocationAreaResp, error) {
 	}
 
 	return data, nil
-} 
+}
+
+func GetLocationAreaDetails(areaName string) (LocationAreaDetailsResp, error) {
+	fullUrl := "https://pokeapi.co/api/v2/location-area/" + areaName
+
+	if data, exist := cache.Get(fullUrl); exist {
+		var res LocationAreaDetailsResp
+		if err := json.Unmarshal(data, &res); err == nil {
+			return res, nil
+		}
+	}
+
+	res, err := http.Get(fullUrl)
+	if err != nil {
+		return LocationAreaDetailsResp{}, fmt.Errorf("failed to fetch location area %s: %w", areaName, err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode > 299 {
+		return LocationAreaDetailsResp{}, fmt.Errorf("location area not found")
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return LocationAreaDetailsResp{}, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	cache.Add(fullUrl, body)
+
+	var data LocationAreaDetailsResp
+	if err := json.Unmarshal(body, &data); err != nil {
+		return LocationAreaDetailsResp{}, fmt.Errorf("failed to parse JSON: %w", err)
+	}
+
+	return data, nil
+}

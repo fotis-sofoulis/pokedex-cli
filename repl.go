@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"bufio"
+	"fmt"
+	"github.com/fotis-sofoulis/pokedex-cli/commands"
 	"os"
 	"strings"
-	"github.com/fotis-sofoulis/pokedex-cli/commands"
 )
 
 func startRepl() {
@@ -25,10 +25,14 @@ func startRepl() {
 		}
 
 		cmdName := cleaned[0]
+		args := []string{}
+		if len(cleaned) > 1 {
+			args = cleaned[1:]
+		}
 
 		cmd, exists := commands.GetCommands()[cmdName]
 		if exists {
-			err := cmd.Callback(cfg)
+			err := cmd.Callback(cfg, args...)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -46,4 +50,3 @@ func cleanInput(text string) []string {
 	words := strings.Fields(strings.ToLower(text))
 	return words
 }
-
