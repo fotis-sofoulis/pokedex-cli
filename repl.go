@@ -10,6 +10,10 @@ import (
 
 func startRepl() {
 	scanner := bufio.NewScanner(os.Stdin)
+	cfg := &commands.Config{
+		Next:     nil,
+		Previous: nil,
+	}
 	for {
 		fmt.Print("Pokedex > ")
 		scanner.Scan()
@@ -24,7 +28,7 @@ func startRepl() {
 
 		cmd, exists := commands.GetCommands()[cmdName]
 		if exists {
-			err := cmd.Callback()
+			err := cmd.Callback(cfg)
 			if err != nil {
 				fmt.Println(err)
 			}
