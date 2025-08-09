@@ -30,7 +30,9 @@ type PokemonEncounter struct {
 }
 
 type Pokemon struct {
-	Name string `json:"name"`
+	ID			   int    `json:"id"`
+	Name		   string `json:"name"`
+	BaseExperience int    `json:"base_experience"`
 }
 
 var cache *pokecache.Cache
@@ -106,4 +108,39 @@ func GetLocationAreaDetails(areaName string) (LocationAreaDetailsResp, error) {
 	}
 
 	return data, nil
+}
+
+func GetPokemon(name string) (Pokemon, []byte, error) {
+	fullUrl := "https://pokeapi.co/api/v2/pokemon/" + name
+
+	if data, exist := cache.Get(fullUrl); exist {
+		var pokemon Pokemon
+		if err := json.Unmarshal(data, &pokemon); err == nil {
+			return pokemon, data, nil
+		}
+	}
+
+	res, err := http.Get(fullUrl)
+	if err != nil {
+		return Pokemon{}, nil, fmt.Errorf("failed to fetch pokemon %s: %w", name, err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode > 299 {
+		return Pokemon{}, nil, fmt.Errorf("pokemon not found")
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return Pokemon{}, nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	cache.Add(fullUrl, body)
+
+	var pokemon Pokemon
+	if err := json.Unmarshal(body, &pokemon); err != nil {
+		return Pokemon{}, nil, fmt.Errorf("failed to parse JSON: %w", err)
+	}
+
+	return pokemon, body, nil
 }

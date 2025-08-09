@@ -1,16 +1,19 @@
 package commands
 
 import (
+	"math/rand"
+	"errors"
 	"fmt"
 	"os"
-	"errors"
 
 	"github.com/fotis-sofoulis/pokedex-cli/internal/pokeapi"
+	"github.com/fotis-sofoulis/pokedex-cli/internal/pokedex"
 )
 
 type Config struct {
 	Next     *string
 	Previous *string
+	LatestEnounters map[string]struct{}
 }
 
 type cliCommand struct {
@@ -45,6 +48,11 @@ func GetCommands() map[string]cliCommand {
 			Name:        "explore <location_area>",
 			Description: "Lists all the pokemon in a given location area",
 			Callback:    commandExplore,
+		},
+		"catch": {
+			Name:        "catch <pokemon_name>",
+			Description: "Attempt to catch a Pokemon and add it to your Pokedex",
+			Callback:    commandCatch,
 		},
 	}
 }
@@ -119,8 +127,49 @@ func commandExplore(cfg *Config, args ...string) error {
 	}
 
 	fmt.Println("Found Pokemon:")
+	cfg.LatestEnounters = make(map[string]struct{}) // reset before adding
 	for _, encounter := range locationAreaDetails.PokemonEncounters {
 		fmt.Printf(" - %s\n", encounter.Pokemon.Name)
+		cfg.LatestEnounters[encounter.Pokemon.Name] = struct{}{}
+	}
+
+	return nil
+}
+
+func commandCatch(cfg *Config, args ...string) error {
+	if len(cfg.LatestEnounters) == 0 {
+		return errors.New("You must explore an area before catching Pokémon")
+	}
+
+	if len(args) == 0 {
+		return errors.New("you must provide a pokemon name")
+	}
+	name := args[0]
+
+	if _, exist := cfg.LatestEnounters[name]; !exist {
+		return fmt.Errorf("%s is not in the currently explored area", name)
+	}
+
+	pokemon, rawData, err := pokeapi.GetPokemon(name)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemon.Name)
+
+	const catchThreshold = 400
+	roll := rand.Intn(catchThreshold)
+
+	if roll < pokemon.BaseExperience {
+		fmt.Printf("%s escaped!\n", pokemon.Name)
+		return nil
+	}
+
+	fmt.Printf("%s was caught!\n", pokemon.Name)
+
+	err = pokedex.AddToPokedex(rawData)
+	if err != nil {
+		return fmt.Errorf("could not add to pokedex: %w", err)
 	}
 
 	return nil

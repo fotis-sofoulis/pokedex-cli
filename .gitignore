@@ -14,3 +14,4 @@ pokedex-cli
 
 # Logs or debugging artifacts
 *.log
+.cache/
