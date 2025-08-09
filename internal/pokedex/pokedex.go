@@ -50,7 +50,7 @@ func AddToPokedex(pokemonDataRaw []byte) error {
 	}
 
 	name := pokeData["name"].(string)
-	if ok, _ := isCaught(name); ok {
+	if ok, _ := IsCaught(name); ok {
 		fmt.Printf("%s is already in your Pokedex!\n", name)
 		return nil
 	}
@@ -233,7 +233,7 @@ func addCaught(id int, name string) error {
 	return os.WriteFile(caughtFile, out, 0644)
 }
 
-func isCaught(name string) (bool, error) {
+func IsCaught(name string) (bool, error) {
 	caughtFile := filepath.Join(cacheDir, "caught.json")
 	data, err := os.ReadFile(caughtFile)
 	if err != nil {

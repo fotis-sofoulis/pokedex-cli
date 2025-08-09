@@ -1,10 +1,12 @@
 package commands
 
 import (
-	"math/rand"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
+	"path/filepath"
 
 	"github.com/fotis-sofoulis/pokedex-cli/internal/pokeapi"
 	"github.com/fotis-sofoulis/pokedex-cli/internal/pokedex"
@@ -21,6 +23,9 @@ type cliCommand struct {
 	Description string
 	Callback    func(cfg *Config, args ...string) error
 }
+
+const CacheDir = ".cache"
+
 
 func GetCommands() map[string]cliCommand {
 	return map[string]cliCommand{
@@ -53,6 +58,16 @@ func GetCommands() map[string]cliCommand {
 			Name:        "catch <pokemon_name>",
 			Description: "Attempt to catch a Pokemon and add it to your Pokedex",
 			Callback:    commandCatch,
+		},
+		"inspect": {
+			Name:        "inspect <pokemon_name>",
+			Description: "Inspect a Pokemon you have caught and check its stats",
+			Callback:    commandInspect,
+		},
+		"pokedex": {
+			Name:        "pokedex",
+			Description: "Show all pokemon you have caught so far",
+			Callback:    commandPokedex,
 		},
 	}
 }
@@ -171,6 +186,63 @@ func commandCatch(cfg *Config, args ...string) error {
 	if err != nil {
 		return fmt.Errorf("could not add to pokedex: %w", err)
 	}
+
+	return nil
+}
+
+func commandInspect(cfg *Config, args ...string) error {
+	if len(args) == 0 {
+        return errors.New("you must provide a pokemon name to inspect")
+    }
+
+	name := args[0]
+
+	caught, err := pokedex.IsCaught(name)
+	if err != nil {
+		return err
+	}
+	if !caught {
+		return fmt.Errorf("%s has not been caught yet", name)
+	}
+
+	spritePath := filepath.Join(CacheDir, name+".txt")
+	spriteData, err := os.ReadFile(spritePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+            return fmt.Errorf("no cached sprite found for %s", name)
+        }
+        return fmt.Errorf("failed to read sprite file: %w", err)
+	}
+
+	fmt.Println(string(spriteData))
+	return nil
+}
+
+func commandPokedex(cfg *Config, args ...string) error {
+	caughtFile := filepath.Join(CacheDir, "caught.json")
+	data, err := os.ReadFile(caughtFile)
+	if err != nil {
+		 if os.IsNotExist(err) {
+            fmt.Println("You haven't caught any Pokémon yet.")
+            return nil
+        }
+        return fmt.Errorf("failed to read caught.json: %w", err)
+	}
+
+	caught := make(map[string]string)
+	if err := json.Unmarshal(data, &caught); err != nil {
+        return fmt.Errorf("failed to parse caught.json: %w", err)
+    }
+
+	if len(caught) == 0 {
+        fmt.Println("You haven't caught any Pokémon yet.")
+        return nil
+    }
+
+	fmt.Println("Your Pokédex:")
+    for _, name := range caught {
+        fmt.Printf(" - %s\n", name)
+    }
 
 	return nil
 }
