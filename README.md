@@ -4,9 +4,11 @@ A retro-style command-line Pokédex powered by the PokéAPI where you can explor
 
 ## 📟 Inspect Preview
 
-![Preview of Inspect Command](pokemon.gif)
+<p align="center">
+  <img src="pokemon.gif" alt="Preview of Inspect Command" />
+</p>
 
-__Some of your favorites__
+_Some of your favorites_🌟🥇
 
 ## ⚙ Setup Instructions
 
