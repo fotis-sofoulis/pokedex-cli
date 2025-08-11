@@ -1,5 +1,5 @@
 # Pokédex CLI
-A retro-style command-line Pokédex powered by the PokéAPI where you can explore locations, catch, and inspect Pokémon in your terminal.
+A retro-style command-line Pokédex powered by the PokéAPI where you can explore locations, catch, and inspect Pokémon in a cool _neofetch_ style, all inside your terminal.
 
 
 ## 📟 Inspect Preview
