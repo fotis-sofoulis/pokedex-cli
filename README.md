@@ -7,8 +7,8 @@ A retro-style command-line Pokédex powered by the PokéAPI where you can explor
 <p align="center">
   <img src="pokemon.gif" alt="Preview of Inspect Command" />
 </p>
+<p align="center"><it>🌟 Some of your favorites 🌟</it></p>
 
-_Some of your favorites_🌟🥇
 
 ## ⚙ Setup Instructions
 
