@@ -45,4 +45,4 @@ Type `help` inside the REPL to see available commands.
 
 1. Add more detailed Pokémon stats
 2. Support for shiny Pokémon variants and forms
-3. Implement search/filter functionality for pokemon and locations
+3. ~~Implement search/filter functionality for pokemon and locations~~
