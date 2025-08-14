@@ -25,6 +25,13 @@ type LocationAreaDetailsResp struct {
 	PokemonEncounters []PokemonEncounter `json:"pokemon_encounters"`
 }
 
+type PokemonLocationEncounter struct {
+	LocationArea struct {
+		Name string `json:"name"`
+		URL  string `json:"url"`
+	} `json:"location_area"`
+}
+
 type PokemonEncounter struct {
 	Pokemon Pokemon `json:"pokemon"`
 }
@@ -143,4 +150,39 @@ func GetPokemon(name string) (Pokemon, []byte, error) {
 	}
 
 	return pokemon, body, nil
+}
+
+func GetPokemonEncounterAreas(name string) ([]PokemonLocationEncounter, error) {
+	fullUrl := "https://pokeapi.co/api/v2/pokemon/" + name + "/encounters"
+
+	if data, exist := cache.Get(fullUrl); exist {
+		var encounters []PokemonLocationEncounter
+		if err := json.Unmarshal(data, &encounters); err == nil {
+			return encounters, nil
+		}
+	}
+
+	res, err := http.Get(fullUrl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch encounters for %s: %w", name, err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode > 299 {
+		return nil, fmt.Errorf("encounter data not found for %s", name)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read encounter response: %w", err)
+	}
+
+	cache.Add(fullUrl, body)
+
+	var encounters []PokemonLocationEncounter
+	if err := json.Unmarshal(body, &encounters); err != nil {
+		return nil, fmt.Errorf("failed to parse encounter JSON: %w", err)
+	}
+
+	return encounters, nil
 }

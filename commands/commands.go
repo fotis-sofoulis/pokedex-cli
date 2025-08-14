@@ -69,6 +69,12 @@ func GetCommands() map[string]cliCommand {
 			Description: "Show all pokemon you have caught so far",
 			Callback:    commandPokedex,
 		},
+		"search": {
+			Name:        "search",
+			Description: "Search <pokemon_name> to see what areas it belonds to",
+			Callback:    commandSearch,
+		},
+
 	}
 }
 
@@ -152,16 +158,21 @@ func commandExplore(cfg *Config, args ...string) error {
 }
 
 func commandCatch(cfg *Config, args ...string) error {
-	if len(cfg.LatestEnounters) == 0 {
-		return errors.New("You must explore an area before catching Pokémon")
-	}
-
 	if len(args) == 0 {
 		return errors.New("you must provide a pokemon name")
 	}
 	name := args[0]
 
-	if _, exist := cfg.LatestEnounters[name]; !exist {
+	_, inExplored := cfg.LatestEnounters[name]
+
+	encounters, err := pokeapi.GetPokemonEncounterAreas(name)
+	if err != nil {
+		return fmt.Errorf("failed to check wild encounters for %s: %w", name, err)
+	}
+
+	hasWildEncounters := len(encounters)
+
+	if !inExplored && hasWildEncounters != 0 {
 		return fmt.Errorf("%s is not in the currently explored area", name)
 	}
 
@@ -243,6 +254,31 @@ func commandPokedex(cfg *Config, args ...string) error {
     for _, name := range caught {
         fmt.Printf(" - %s\n", name)
     }
+
+	return nil
+}
+
+func commandSearch(cfg *Config, args ...string) error {
+	if len(args) == 0 {
+        return errors.New("you must provide a pokemon name to search")
+    }
+
+	name := args[0]
+
+	encounters, err := pokeapi.GetPokemonEncounterAreas(name)
+	if err != nil {
+		return err
+	}
+	
+	if len(encounters) == 0 {
+		fmt.Printf("%s cannot be found in the wild.\n", name)
+		return nil
+	}
+
+	fmt.Printf("You can find %s in:\n", name)
+	for _, e := range encounters {
+		fmt.Printf(" - %s\n", e.LocationArea.Name)
+	}
 
 	return nil
 }

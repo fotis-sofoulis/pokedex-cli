@@ -255,3 +255,4 @@ func IsCaught(name string) (bool, error) {
 	}
 	return false, nil
 }
+
